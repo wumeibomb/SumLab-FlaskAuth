@@ -13,11 +13,12 @@
 from flask import Flask, request, jsonify
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_idetity,get_jwt
-from models import *
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, get_jwt
+from models import User, Decks, UserSchema, DeckSchema
+from configs import db
 
 app = Flask(__name__)
-migrate = Migrate(app)
+migrate = Migrate(app, db) #remember the db
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///carddecks.db"
 app.config["JWY_SECRET_KEY"] = 'eu9hr01AsDIGIhugs'
@@ -25,7 +26,6 @@ app.config["JWY_SECRET_KEY"] = 'eu9hr01AsDIGIhugs'
 jwt = JWTManager(app)
 db.init_app(app)
 api = Api(app)
-
 
 
 def response(code, message, data):
@@ -95,7 +95,7 @@ class card_decks(Resource):
 class 누구(Resource):
     @jwt_required
     def get(self):
-        user_id = get_jwt_idetity()
+        user_id = get_jwt_identity()
         user = db.session.get(User, int(user_id))
         return response(
             200,
@@ -109,36 +109,5 @@ api.add_resource(registration, '/me', endpoint = 'me')
 api.add_resource(logging_in, '/<string:login>')
 api.add_resource(card_decks, '/decks')
 
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-@app.route("/flop/<resource>", methods = ["GET"])
-def get_card_decks():
-    pass
-#pagination will be each card deck
-
-@app.route("/flop/<str:resource>", methods = ["POST"])
-def buy_a_deck():
-    pass
-
-@app.route("/flop/<str:resource>/<int:id>", methods = ["PATCH"])
-def update_deck():
-    pass
-
-@app.route("/flop/<str:resource>/<int:id>", methods = ["DELETE"])
-def delete_deck():
-    pass
-
 if __name__ == "__main__":
-    app.run(port= 5555, debug=True)
+    app.run(port = 5555, debug= True)
