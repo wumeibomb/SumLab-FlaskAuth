@@ -16,7 +16,7 @@ class User(db.Model):
     password_h = db.Column(db.String(256), nullable = False)
     equipped_card_deck = db.Column(db.String(500)) #LIKELY CHANGE
 
-    decks = db.relationship('Decks', backref= 'user')
+    decks = db.relationship('Decks', back_populates= 'user')
 
     #function to store password in its hashed form  
     @hybrid_property
@@ -38,7 +38,7 @@ class User(db.Model):
         {
             "id": self.id,
             "username": self.username,
-            "password": self.password,
+            "password": self.password_h,
             "card_deck": self.equipped_card_deck
         }
 
@@ -52,9 +52,9 @@ class Decks(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('UserInfo.id'))
     sets_acquired = db.Column(db.String(300))
     account_worth = db.Column(db.Integer)#ingame currency not real money nyeheh
-    tier = db.Column(db.String(200))#the user tier, either C, B , A, S, SS
+    tier = db.Column(db.String(100))#the user tier, either C, B , A, S, SS
 
-    user = db.relationship('User', backref = 'decks')
+    user = db.relationship('User', back_populates = 'decks')
 
     def dictionify(self):
         {
