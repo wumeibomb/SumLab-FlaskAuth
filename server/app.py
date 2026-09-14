@@ -10,18 +10,19 @@
 #protection to ensure account isn't hacked.
 #create-post = Buying a card deck, update = upgrade cards two tiers, get cards = displaying crd decks, delete = selling card decks
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, json
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, get_jwt
-from models import User, Decks, UserSchema, DeckSchema
+from models import *
 from configs import db
 
 app = Flask(__name__)
-migrate = Migrate(app, db) #remember the db
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///carddecks.db"
 app.config["JWY_SECRET_KEY"] = 'eu9hr01AsDIGIhugs'
+
+migrate = Migrate(app, db) #remember the db
 
 jwt = JWTManager(app)
 db.init_app(app)
@@ -35,36 +36,41 @@ def response(code, message, data):
     }), code
 
 class registration(Resource):
+
     def post(self):
-        data = request.get_json()
+        data = request.get_json() or {}
+
         if not data.get("username") or not data.get("password"):
-            return response(
-                422,
-                message= "No username and/or password provided"
-            )
+            return jsonify({
+                "message": "No Username or Password Provided"
+            })
 
         username = data["username"]
         password = data["password"]
 
         #looking to see if the user has already signed up:
-        existing_user = db.session.scalars(db.select(User).where(User.username == data["username"]))
+        existing_user = db.session.scalars(db.select(User).where(User.username == username))
 
+        existing_user_output = {
+            "message": "An account is already under this name, try another",
+        }
         #check if it should be if not instead of if
-        if existing_user:
-            return response(
-                422,
-                message = "checckinh..."
-            )
+        if not existing_user:
+            return jsonify(existing_user_output)
 
-        user = User(username = username)
-        user.password_hash(password)
+        user = User(username= username)
+        user.password_hash = password
+        print(user.username)
 
         db.session.add(user)
         db.session.commit()
 
-        return response(200,
-                message= "eureka!",
-                data= user.dictionify())
+        get_data = {
+            "message": "Created New Account!",
+            "Username": f"{user.username}"
+        }
+
+        return jsonify(get_data)
 
 
 class logging_in(Resource):
@@ -77,36 +83,42 @@ class logging_in(Resource):
         user = User.query.filter(User.username == username).first()
 
         if user and user.authenticate(password):
-            token = create_access_token(identity=str(user.id))
+            TOKEN = create_access_token(identity=str(user.id))
+            
             return response(200, message="reggaetonnn", 
                     data = {
                         "user": username,
-                        "token": token
+                        "token": TOKEN
                     })
-        return {'error': ['401 Unauthorized']}, 401
+        return {'error': ['401 Unauthorized, You may not have an account or are Unauthorized']}, 401
 
 
 
 class card_decks(Resource):
+
     def get(self):
-            cards = Decks.query.all()
-            return jsonify({cards})
+        cards = db.session.scalars(db.select(Decks)).all()
+        print(cards)
+            #return jsonify(response(200, data= {
+             #   "cards": cards
+            #},#. message= "SUCCESSS"))
+        get_data = {
+            "cards": [eachDeck.dictionify() for eachDeck in cards],
+            "message": "successful retrieval"
+        }
+        return jsonify(get_data)
+        
+            
 
 class 누구(Resource):
     @jwt_required
     def get(self):
         user_id = get_jwt_identity()
-        user = db.session.get(User, int(user_id))
-        return response(
-            200,
-            data  = {
-                "user": user.dictionify()
-            },
-            message = "successful retrieval"
-        )
+        user = User.query.get(user_id)
+        return UserSchema().dump(user), 200
     
 api.add_resource(registration, '/me', endpoint = 'me')
-api.add_resource(logging_in, '/<string:login>')
+api.add_resource(logging_in, '/login')
 api.add_resource(card_decks, '/decks')
 
 if __name__ == "__main__":

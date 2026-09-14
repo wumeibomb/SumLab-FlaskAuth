@@ -6,10 +6,10 @@ with app.app_context():
     db.session.query(User).delete()
     db.session.query(Decks).delete()
 
-    user1 = User(id = 101, username = "flop123", password_h = "trUs232", equipped_card_deck = "StarterDeck")
-    user2 = User(id = 102, username = "flip321", password_h = "greTahd", equipped_card_deck = "CyberDeck")
-    user3 = User(id = 103, username = "trope44", password_h = "dR3enchedInmayo", equipped_card_deck = "StarterDeck")
-    user4 = User(id = 104, username = "pterodactylover", password_h = "str0NG&cuTE", equipped_card_deck = "RareAnimalsDeck")
+    user1 = User(id = 101, username = "flop123", password_h = "trUs232", equipped_card_deck = "Starter Deck")
+    user2 = User(id = 102, username = "flip321", password_h = "greTahd", equipped_card_deck = "Cyber Deck")
+    user3 = User(id = 103, username = "trope44", password_h = "dR3enchedInmayo", equipped_card_deck = "Starter Deck")
+    user4 = User(id = 104, username = "pterodactylover", password_h = "str0NG&cuTE", equipped_card_deck = "Rare Animals Deck")
 
     db.session.add_all([user1, user2, user3, user4])
     db.session.commit()
