@@ -13,7 +13,7 @@ class User(db.Model):
     __tablename__ = "UserInfo"
 
     id = db.Column(db.Integer, primary_key = True)
-    username = db.Column(db.String(88),nullable = False)
+    username = db.Column(db.String(88),unique = True, nullable = False)
     password_h = db.Column(db.String(256), nullable = False)
     equipped_card_deck = db.Column(db.String(500), default = "Starter Deck") 
 
@@ -53,7 +53,7 @@ class Decks(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('UserInfo.id'))
     sets_acquired = db.Column(db.String(300), default = 1)
     account_worth = db.Column(db.Integer, default = 10)#ingame currency not real money nyeheh
-    tier = db.Column(db.String(100))#the user tier, either C, B , A, S, SS
+    tier = db.Column(db.String(100), default = "C")#the user tier, either C, B , A, S, SS
 
     user = db.relationship('User', back_populates = 'decks')
 
