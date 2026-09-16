@@ -1,8 +1,8 @@
 # Flask Summative Lab - Backend
 - This is a sumamtive lab that focuses on the production of a the backend of a flask application and its database.
 
-LINK FOR DEPLOYED WEP PAGE:
-efndsjj
+LINK FOR DEPLOYED WEP PAGE: (my deployment lowkey failed?)
+![alt text](image.png)
 
 ## To utilize:
  - Clone this repo, enter your IDE and access the cloned folder. Write the command pipenv shell and then open the server folder within the repo. 
