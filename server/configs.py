@@ -11,14 +11,12 @@ db_url = os.getenv("DATABASE_URL", "sqlite:///app.db" )
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://")
 
-#jwt_secret_key = os.getenv("JWT_SECRET_KEY")
-#if not jwt_secret_key:
-#    raise RuntimeError("error: JWT secret key not set")
+jwt_secret_key = os.getenv("JWT_SECRET_KEY")
+if not jwt_secret_key:
+    raise RuntimeError("error: JWT secret key not set")
 
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-
 
 
 db = SQLAlchemy()
