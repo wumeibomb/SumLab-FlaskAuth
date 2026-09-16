@@ -1,14 +1,6 @@
-#login, logout and sessions. 
-#signing up and its authentication 
-#authenticate the usernames as unidentical to those already in db
-#create seed for db
-#figure out pagination?? and do CRUD endpoints
-#check session route
-#1-authenticate2-sessionobjectholdauthentications3-sessioncookieforeachrequest4-logoutclearsession
 #userowneddresource is card decks. app is a solitaire game that has users and their respective card decks are stored and
 #that is the resource. card decks, acquireddate, usage rate, win rate, loss rate, equip
-#protection to ensure account isn't hacked.
-#create-post = Buying a card deck, update = upgrade cards two tiers, get cards = displaying crd decks, delete = selling card decks
+#create-post = Buying a card deck, update = upgrade cards, get cards = displaying card decks, delete = selling card decks
 
 from flask import Flask, request, jsonify, json, render_template
 from flask_migrate import Migrate
@@ -16,9 +8,9 @@ from flask_restful import Api, Resource
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, get_jwt, verify_jwt_in_request
 from models import *
 from configs import db
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
-load_dotenv()
+#load_dotenv()
 
 app = Flask(__name__)
 
@@ -36,7 +28,9 @@ api = Api(app)
 def logged_in_questionmark():
     accessable_list = [
         "me",
-        "login"
+        "login",
+        "stats-upgrade",
+        "decks"
     ]
     if (request.endpoint) not in accessable_list and (not verify_jwt_in_request()):
         return {"ERRORRORORORR": "401 Unauthorized, You may not have an account or are Unauthorized"}
@@ -110,7 +104,8 @@ class logging_in(Resource):
         return {'error': '401 Unauthorized, You may not have an account or are Unauthorized'}, 401
 
 class add_decks(Resource): #this is like to update the decks acquired and account status
-    def post(self):
+    @jwt_required
+    def patch(self, user_id):
         data = request.get_json()
 
         decks = Decks(
@@ -123,6 +118,7 @@ class add_decks(Resource): #this is like to update the decks acquired and accoun
         db.session.add(decks)
         db.session.commit()
 
+        return jsonify(decks)
 
 class card_decks(Resource):
     def get(self):
@@ -137,19 +133,46 @@ class card_decks(Resource):
         return jsonify(get_data)
         
             
+@app.route("/decks/<int:user_id>", methods = ["GET", "DELETE"])
+def retrieve_delete_decks(user_id):
 
-class 누구(Resource): #this is the CheckSession alternative, WhoAmI"
+    if request.method == "GET":
+    
+        decks = db.session.execute(db.select(Decks).where(Decks.id == user_id))
+        print(decks)
+
+        get_data = {
+                "message": "Data Retrieved Successfully",
+                "data": [each.dictionify() for each in decks.scalars()]
+                }
+
+        if get_data["data"] == []:
+            return jsonify({"error": "User_ID doesn't exist"}), 204
+        
+        return jsonify(get_data)
+    
+    db.session.execute(db.delete(Decks).where(Decks.id == user_id)) 
+    db.session.commit()
+    
+    output = {
+        "message": "Workout Deleted Successfully"
+    }
+    return jsonify(output)
+
+    
+class WhoAmI(Resource): #this is the CheckSession alternative, WhoAmI"
     @jwt_required
     def get(self):
         user_id = get_jwt_identity()
-        user = User.query.get(user_id)
-        return UserSchema().dump(user), 200
+        user = User.query.filter(User.id == user_id).first()
+        print(user)
+        return jsonify({"checking": user})
     
 api.add_resource(registration, '/register', endpoint = 'register')
 api.add_resource(logging_in, '/login', endpoint = 'login')
-api.add_resource(card_decks, '/decks', endpoint = 'decks')
-api.add_resource(add_decks, "/stats-upgrade", endpoint = 'stats-upgrade')
-api.add_resource(누구, "/me", endpoint = 'me')
+#api.add_resource(card_decks, '/decks', endpoint = 'decks')
+#api.add_resource(add_decks, "/stats-upgrade/<int:user_id>", endpoint = 'stats-upgrade')
+api.add_resource(WhoAmI, "/me", endpoint = 'me')
 
 
 if __name__ == "__main__":

@@ -15,7 +15,6 @@ if db_url.startswith("postgres://"):
 #if not jwt_secret_key:
 #    raise RuntimeError("error: JWT secret key not set")
 
-app.secret_key = 'treasureeeeeee'
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
